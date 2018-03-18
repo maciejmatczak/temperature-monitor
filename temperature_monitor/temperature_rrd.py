@@ -10,8 +10,21 @@ from pprint import pprint
 from config import SENSOR_CONFIG
 
 
-class TemperatureRRD(object):
-    def __init__(self, rrd_path, rrd_backup_path=None, create_rrd=False):
+class TemperatureRRD():
+    def __init__(self, rrd_path: str, rrd_backup_path: str=None, create_rrd: bool=False) -> None:
+        """API for temperature type RRD.
+
+        Number of thermometers is predefined in config. Can use backuped db for source or create from scratch.
+
+        Args:
+            rrd_path (str): Path to production db.
+            rrd_backup_path (str, optional): Defaults to None. Source db to fetch from backup area.
+            create_rrd (bool, optional): Defaults to False. Switch to create or not the db.
+
+        Returns:
+            None: None.
+        """
+
         self.rrd_path = rrd_path
         self.rrd_backup_path = rrd_backup_path
 
@@ -37,7 +50,7 @@ class TemperatureRRD(object):
                     'RRA:AVERAGE:0.5:4032:60'
                 )
 
-    def fetch_for_time(self, start_time_expression, end_time_expression=None):
+    def fetch_for_time(self, start_time_expression: str, end_time_expression: str=None) -> dict:
         ((start, stop, step), ds_labels, rows) = rrdtool.fetch(self.rrd_path, 'AVERAGE',
                                                                '-s', start_time_expression)
 
@@ -45,17 +58,9 @@ class TemperatureRRD(object):
         # every tuple inside is time series of measurments
         measurment_matrix = [list(series) for series in zip(*rows)]
 
-        time_series = [datetime.fromtimestamp(
-            x).isoformat() for x in range(start, stop, step)]
+        time_series = [datetime.fromtimestamp(x).isoformat() for x in range(start, stop, step)]
 
-        # # getting additional latest value which did not have occasion to be
-        # # included in fetched archive
-        # if step == 1:
-        #     (last_timestamp, last_value) = self.__last_update()
-        #     try:
-        #         rows[-(stop - last_timestamp)] = last_value
-        #     except IndexError:
-        #         pass
+        # filtering out few None values from top
         for _ in range(2):
             if not any([series[-1] for series in measurment_matrix]):
                 for series in measurment_matrix:
@@ -69,7 +74,7 @@ class TemperatureRRD(object):
 
         return output
 
-    def update(self, temperature_measurments):
+    def update(self, temperature_measurments: dict):
         """It uses dictionary with measurments (values) from specific DS thermometers (keys)
         """
         temperature = ':'.join(str(x)
