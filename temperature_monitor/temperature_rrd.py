@@ -5,7 +5,7 @@ from os import path
 import rrdtool
 import shutil
 
-from config import SENSOR_CONFIG
+from .config import SENSOR_CONFIG
 
 
 class TemperatureRRD():
@@ -109,7 +109,8 @@ class TemperatureRRD():
         labels = ':'.join([SENSOR_CONFIG[sensor]
                            for sensor in temperature_measurments.keys()])
 
-        rrdtool.update(self.rrd_path,
-                       '-t', '{}'.format(labels),
-                       'N:{}'.format(temperature)
-                       )
+        rrdtool.update(
+            self.rrd_path,
+            '--template', '{}'.format(labels),
+            'N:{}'.format(temperature)
+        )

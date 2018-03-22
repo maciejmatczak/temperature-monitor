@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 
+import shutil
+import tempfile
 import unittest
+from random import random
+import rrdtool
 from unittest import mock
-from temperature_rrd import TemperatureRRD
+
+from temperature_monitor.temperature_rrd import TemperatureRRD
 
 
 class TestFakeRRD(unittest.TestCase):
@@ -67,6 +72,61 @@ class TestFakeRRD(unittest.TestCase):
             },
             output
         )
+
+
+class TestRealRRD(unittest.TestCase):
+    def setUp(self):
+        self.tmp_dir = tempfile.mkdtemp()
+        self.rrd_path = self.tmp_dir + '/tmp_db.rrd'
+
+        rrdtool.create(
+            self.rrd_path,
+            '--start', '{}s'.format(-20 * 60),
+            '--step', '5',
+            'DS:temp1:GAUGE:300:U:U',
+            'DS:temp2:GAUGE:300:U:U',
+            'DS:temp3:GAUGE:300:U:U',
+            'DS:temp4:GAUGE:300:U:U',
+            'DS:temp5:GAUGE:300:U:U',
+            'RRA:AVERAGE:0.5:1:60',
+            'RRA:AVERAGE:0.5:4:60',
+            'RRA:AVERAGE:0.5:12:60',
+            'RRA:AVERAGE:0.5:96:60',
+            'RRA:AVERAGE:0.5:288:60',
+            'RRA:AVERAGE:0.5:576:60',
+            'RRA:AVERAGE:0.5:2016:60',
+            'RRA:AVERAGE:0.5:4032:60'
+        )
+
+        self.temperature_rrd = TemperatureRRD(
+            rrd_path=self.rrd_path
+        )
+
+        labels = ':'.join(['temp{}'.format(i + 1) for i in range(5)])
+
+        for x in range(60, 0, -5):
+            temperatures = ':'.join([str(21 + random() * 4) for _ in range(5)])
+            rrdtool.update(
+                self.rrd_path,
+                '--template', '{}'.format(labels),
+                '--',
+                '{}:{}'.format(-x, temperatures)
+            )
+
+    def test_basic_output(self):
+        output = self.temperature_rrd.fetch_for_time('-30s')
+
+        self.assertIn('datasets', output)
+        self.assertIn('labels', output)
+
+    def test_length_of_output(self):
+        output = self.temperature_rrd.fetch_for_time('-30s')
+
+        self.assertEqual(len(output['datasets'][0]['data']), 5)
+        self.assertEqual(len(output['labels']), 5)
+
+    def tearDown(self):
+        shutil.rmtree(self.tmp_dir)
 
 
 if __name__ == '__main__':
