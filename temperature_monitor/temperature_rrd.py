@@ -3,7 +3,7 @@ from os import path
 import rrdtool
 import shutil
 
-from .config import SENSOR_CONFIG
+from config import SENSOR_CONFIG
 
 
 class TemperatureRRD():
