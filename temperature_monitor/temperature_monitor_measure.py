@@ -1,5 +1,3 @@
-#!/home/pi/temperature_monitor/venv3/bin/python
-
 from glob import glob
 import logging
 from multiprocessing.dummy import Pool
