@@ -7,5 +7,3 @@ SENSOR_CONFIG = {
 }
 
 SENSOR_PATH = '/sys/bus/w1/devices/'
-RRD_PATH = '/var/tmpdisk/temperature.rrd'
-RRD_BACKUP_PATH = '/home/pi/tmpdisk_backup/tmpdisk/temperature.rrd'
