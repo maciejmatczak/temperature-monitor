@@ -1,0 +1,11 @@
+---
+- hosts: pi
+  remote_user: pi
+  tasks:
+   - name: Git clone head master
+     vars:
+      - deploy_repo: https://github.com/maciejmatczak/temperature-monitor.git
+      - deploy_area: /home/pi/deployed
+     git:
+       repo: "{{ deploy_repo }}"
+       dest: "{{ deploy_area }}"

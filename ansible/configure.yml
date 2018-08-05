@@ -1,0 +1,9 @@
+---
+- hosts: pi
+  remote_user: pi
+  become: yes
+  tasks:
+   - name: Install git
+     apt:
+       name: git
+       state: present
