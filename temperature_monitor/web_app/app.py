@@ -8,7 +8,7 @@ from os import path, system, getenv  # noqa E402
 import platform  # noqa E402
 from random import random  # noqa E402
 import sys  # noqa E402
-from temperature_rrd import TemperatureRRD  # noqa E402
+from temperature_monitor.temperature_rrd import TemperatureRRD  # noqa E402
 
 
 load_dotenv()
@@ -49,7 +49,7 @@ def ping_pong():
 
 
 def main():
-    if getenv('ENVIRONMENT') == 'DEVELOPMENT':
+    if getenv('ENVIRONMENT') == 'development':
         socketio.run(app)
     else:
         socketio.run(app, host="0.0.0.0", port=80)

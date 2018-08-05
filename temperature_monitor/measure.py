@@ -7,7 +7,8 @@ from os.path import basename
 from random import random
 from apscheduler.schedulers.blocking import BlockingScheduler as Scheduler
 
-from temperature_rrd import TemperatureRRD
+from .config import SENSOR_CONFIG
+from temperature_monitor.temperature_rrd import TemperatureRRD
 
 load_dotenv()
 
@@ -37,7 +38,7 @@ def read_1wire_temp_all_parallel():
     global pool
 
     devices_path_list = sorted(glob('/sys/bus/w1/devices/28*'))
-    devices_name_list = [basename(p) for p in devices_path_list]
+    devices_name_list = [SENSOR_CONFIG[basename(p)] for p in devices_path_list]
 
     result = pool.map(read_1wire_temp_device, devices_path_list)
 
@@ -51,22 +52,23 @@ def scheduled_task():
 
 def scheduled_task_fake():
     temperature_dict = {
-        '28-0416010629ff': 20 + random()*3,
-        '28-0416c0b953ff': 20 + random()*3,
-        '28-0516b40863ff': 20 + random()*3,
-        '28-0516b421e7ff': 20 + random()*3,
-        '28-0516b47155ff': 20 + random()*3
+        'temp1': 20 + random()*3,
+        'temp2': 20 + random()*3,
+        'temp3': 20 + random()*3,
+        'temp4': 20 + random()*3,
+        'temp5': 20 + random()*3
     }
     temperature_rrd.update(temperature_dict)
 
 
 def main():
-    if getenv('ENVIRONMENT') == 'DEVELOPMENT':
+    if getenv('ENVIRONMENT') == 'development':
         task = scheduled_task_fake
     else:
         task = scheduled_task
 
     scheduler.add_job(task, trigger='cron', second='*/5')
+    scheduler.start()
 
 
 if __name__ == '__main__':
