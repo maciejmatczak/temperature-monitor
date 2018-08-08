@@ -1,5 +1,6 @@
 # Temperature Monitor
 Simple Raspberry Pi web server thermometer:
+
 ![Screenshot](img/screenshot.png)
 
 Uses:
