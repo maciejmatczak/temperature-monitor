@@ -1,0 +1,10 @@
+[Unit]
+Description={{ item.description }}
+After=multi-user.target
+
+[Service]
+Type=idle
+ExecStart={{ item.ExecStart }}
+
+[Install]
+WantedBy=multi-user.target

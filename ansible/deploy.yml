@@ -1,11 +1,37 @@
----
 - hosts: pi
   remote_user: pi
+  vars:
+    - deploy_repo: 'https://github.com/maciejmatczak/temperature-monitor.git'
+    - deploy_area: /home/pi/deployed/temperature_monitor
+    - service_list:
+       - name: 'temperature_monitor_measure'
+         description: 'Temperature Monitor measure service'
+         ExecStart: '{{ deploy_area }}/venv/bin/python {{ deploy_area }}/service_measure.py'
+       - name: 'temperature_monitor_web_app'
+         description: 'Temperature Monitor web app service'
+         ExecStart: '{{ deploy_area }}/venv/bin/python {{ deploy_area }}/service_web_app.py'
   tasks:
-   - name: Git clone head master
-     vars:
-      - deploy_repo: https://github.com/maciejmatczak/temperature-monitor.git
-      - deploy_area: /home/pi/deployed
-     git:
-       repo: "{{ deploy_repo }}"
-       dest: "{{ deploy_area }}"
+    - name: Git clone Temperature Monitor
+      git:
+        repo: '{{ deploy_repo }}'
+        dest: '{{ deploy_area }}'
+
+    - name: Install Python's packages
+      pip:
+        requirements: '{{ deploy_area }}/requirements.txt'
+        virtualenv: '{{ deploy_area }}/venv'
+        virtualenv_python: python3
+
+    - name: Create services
+      become: yes
+      template: 'src=service.j2 dest=/etc/systemd/system/{{ item.name }}.service'
+      loop: '{{ service_list }}'
+
+    - name: Restart services
+      become: yes
+      systemd:
+        state: restarted
+        name: '{{ item.name }}.service'
+        daemon_reload: yes
+        enabled: yes
+      loop: '{{ service_list }}'
